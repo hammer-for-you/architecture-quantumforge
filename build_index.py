@@ -1,6 +1,7 @@
 import glob
 import os
 from langchain_community.document_loaders import DirectoryLoader
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from langchain_community.vectorstores import FAISS
@@ -18,6 +19,9 @@ def load_knowledge_base(base_dir):
 
     Args:
         base_dir: Каталог с базой знаний
+
+    Returns:
+        docs: Загруженные документы
     """
     print("Загружаем базу знаний...")
     loader = DirectoryLoader(KNOWLEDGE_BASE_DIR, glob = "*.txt", show_progress = True)
@@ -32,6 +36,9 @@ def create_chunks(docs):
 
     Args:
         docs: Загруженные документы, которые будут нарезаны на чанки
+
+    Returns:
+        chunks: Чанки, полученные из документов
     """
     print("Разбиваем документы на чанки...")
 
@@ -42,8 +49,8 @@ def create_chunks(docs):
     print("Добавляем метаданные к чанкам...")
     for index, chunk in enumerate(chunks):
         source = chunk.metadata['source']
-        filename = os.path.basename(source)
-        chunk.metadata['filename'] = filename
+        title = os.path.splitext(os.path.basename(source))[0].replace('_', ' ')
+        chunk.metadata['title'] = title
         chunk.metadata['chunk_id'] = f"chunk::{index:08d}"
     print("Метаданные добавлены\n")
 
@@ -87,6 +94,8 @@ def main():
     docs = load_knowledge_base(KNOWLEDGE_BASE_DIR)
 
     chunks = create_chunks(docs)
+
+    create_index(chunks)
 
 if __name__ == "__main__":
     main()
