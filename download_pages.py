@@ -12,6 +12,38 @@ import shutil
 import requests
 from bs4 import BeautifulSoup
 
+def extract_title_from_first_line(text):
+    """
+    Извлекает часть текста до ' | ' из первой строки
+    
+    Args:
+        text (str): Полный текст
+        
+    Returns:
+        tuple: (очищенный текст, заголовок для имени файла)
+    """
+    lines = text.split('\n')
+    if not lines:
+        return text, "unknown"
+    
+    first_line = lines[0].strip()
+    
+    parts = first_line.split(' | ')
+    if parts:
+        title_part = parts[0].strip()
+        
+        lines[0] = title_part
+        
+        cleaned_text = '\n'.join(lines)
+        
+        safe_title = re.sub(r'[^\w\s-]', '', title_part)
+        safe_title = re.sub(r'[-\s]+', '_', safe_title)
+        safe_title = safe_title.strip('-_')
+        
+        return cleaned_text, safe_title
+    
+    return text, "unknown"
+
 def clear_text(html_content) -> str:
     """
     Очищает HTML от тегов и оставляет только текст
@@ -72,7 +104,7 @@ def download_page(url):
         print(f"Неизвестная ошибка для URL {url}: {e}")
         return None
 
-def save_text_to_file(text, url, counter):
+def save_text_to_file(text, url, counter, title):
     """
     Сохраняет текстовый контент в файл
     
@@ -80,19 +112,19 @@ def save_text_to_file(text, url, counter):
         text (str): Текст для сохранения
         url (str): Исходный URL
         counter (int): Номер файла
+        title (str): Название статьи
     """  
-    parsed_url = urlparse(url)
-    domain = parsed_url.netloc.replace('.', '_')
-    path = parsed_url.path.replace('/', '_').replace('?', '_').replace('=', '_')[:50]
+    if title and title != 'unknown':
+        filename = f"raw_data/{title}.txt"
+    else:
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc.replace('.', '_')
+        path = parsed_url.path.replace('/', '_').replace('?', '_').replace('=', '_')[:50]
     
-    filename = f"raw_data/{counter:03d}_{domain}_{path}.txt"
+        filename = f"raw_data/{counter:03d}_{domain}_{path}.txt"
     
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            #f.write(f"URL: {url}\n")
-            #f.write(f"Downloaded: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-            #f.write(f"Content length: {len(text)} characters\n")
-            #f.write("-" * 50 + "\n\n")
             f.write(text)
         print(f"Сохранено: {filename}")
     except Exception as e:
@@ -102,7 +134,8 @@ def main():
     """
     Основная функция скрипта
     """
-    shutil.rmtree('raw_data')
+    if os.path.exists('raw_data'):
+        shutil.rmtree('raw_data')
     os.makedirs('raw_data', exist_ok=True)
 
     json_file = "json/pages.json"
@@ -138,8 +171,10 @@ def main():
         if not clean_text or len(clean_text.strip()) < 100:
             print(f"Мало контента на странице ({len(clean_text)} символов): {url}")
             continue
+
+        modified_text, title = extract_title_from_first_line(clean_text)
         
-        save_text_to_file(clean_text, url, downloaded_count + 1)
+        save_text_to_file(clean_text, url, downloaded_count + 1, title)
         downloaded_count += 1
         
         print(f"Успешно обработано: {downloaded_count}/{len(urls)}")

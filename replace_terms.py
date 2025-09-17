@@ -2,8 +2,40 @@ import json
 import os
 import re
 from pathlib import Path
+import shutil
 from typing import Dict, List
 
+def extract_title_from_first_line(text):
+    """
+    Извлекает часть текста до ' | ' из первой строки
+    
+    Args:
+        text (str): Полный текст
+        
+    Returns:
+        tuple: (очищенный текст, заголовок для имени файла)
+    """
+    lines = text.split('\n')
+    if not lines:
+        return text, "unknown"
+    
+    first_line = lines[0].strip()
+    
+    parts = first_line.split(' | ')
+    if parts:
+        title_part = parts[0].strip()
+        
+        lines[0] = title_part
+        
+        cleaned_text = '\n'.join(lines)
+        
+        safe_title = re.sub(r'[^\w\s-]', '', title_part)
+        safe_title = re.sub(r'[-\s]+', '_', safe_title)
+        safe_title = safe_title.strip('-_')
+        
+        return cleaned_text, safe_title
+    
+    return text, "unknown"
 
 def load_replacements_map(json_file_path: str) -> List[Dict[str, str]]:
     """
@@ -37,6 +69,8 @@ def process_files(input_dir: str, output_dir: str, replacements: List[Dict[str, 
         output_dir (str): Выходной каталог для обработанных файлов
         replacements (List[Dict[str, str]]): Список замен для применения (сохраняется порядок)
     """
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
     os.makedirs(output_dir, exist_ok=True)
     
     text_files = []
@@ -57,11 +91,13 @@ def process_files(input_dir: str, output_dir: str, replacements: List[Dict[str, 
                 
                 pattern = re.escape(from_text)
                 content = re.sub(pattern, to_text, content)
+
+            modified_content, title = extract_title_from_first_line(content)
             
-            output_file_path = Path(output_dir) / file_path.name
+            output_file_path = Path(output_dir) / f"{title}.txt"
             
             with open(output_file_path, 'w', encoding='utf-8') as file:
-                file.write(content)
+                file.write(modified_content)
             
             processed_count += 1
             print(f"Обработан файл: {file_path.name}")
