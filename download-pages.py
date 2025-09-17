@@ -7,6 +7,7 @@ import sys
 import time
 from urllib.parse import urlparse
 import re
+import shutil
 
 import requests
 from bs4 import BeautifulSoup
@@ -79,9 +80,7 @@ def save_text_to_file(text, url, counter):
         text (str): Текст для сохранения
         url (str): Исходный URL
         counter (int): Номер файла
-    """
-    os.makedirs('raw-data', exist_ok=True)
-    
+    """  
     parsed_url = urlparse(url)
     domain = parsed_url.netloc.replace('.', '_')
     path = parsed_url.path.replace('/', '_').replace('?', '_').replace('=', '_')[:50]
@@ -90,10 +89,10 @@ def save_text_to_file(text, url, counter):
     
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(f"URL: {url}\n")
-            f.write(f"Downloaded: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"Content length: {len(text)} characters\n")
-            f.write("-" * 50 + "\n\n")
+            #f.write(f"URL: {url}\n")
+            #f.write(f"Downloaded: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+            #f.write(f"Content length: {len(text)} characters\n")
+            #f.write("-" * 50 + "\n\n")
             f.write(text)
         print(f"Сохранено: {filename}")
     except Exception as e:
@@ -103,6 +102,9 @@ def main():
     """
     Основная функция скрипта
     """
+    shutil.rmtree('raw-data')
+    os.makedirs('raw-data', exist_ok=True)
+
     json_file = "json/pages.json"
     
     try:
