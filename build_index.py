@@ -1,9 +1,8 @@
 import glob
 import os
 from langchain_community.document_loaders import DirectoryLoader
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from sentence_transformers import SentenceTransformer
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import FAISS
 import time
 
@@ -68,15 +67,15 @@ def create_index(chunks):
 
     start_time = time.perf_counter()
 
-    print("Инициализация языковой модели")
-    model = SentenceTransformer(MODEL_NAME)
-
     print("Создание эмбеддингов")
-    embeddings = model.encode(chunks, show_progress_bar = True)
+    embeddings = HuggingFaceBgeEmbeddings(
+        model_name = f"sentence-transformers/{MODEL_NAME}",
+        model_kwargs = {"device": "cpu"},
+        encode_kwargs = {'normalize_embeddings': True}
+    )
 
     print("Начато построение индекса")
     vectorstore = FAISS.from_documents(chunks, embeddings)
-    index_path = INDEX_DIR
     vectorstore.save_local(INDEX_DIR)
 
     end_time = time.perf_counter()
