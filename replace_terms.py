@@ -77,7 +77,7 @@ def main():
     Основная функция скрипта.
     """
     json_file_path = "json/terms_map.json"
-    input_directory = "raw-data"
+    input_directory = "raw_data"
     output_directory = "knowledge_base"
     
     print("Запуск скрипта замены текста...")

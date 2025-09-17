@@ -85,7 +85,7 @@ def save_text_to_file(text, url, counter):
     domain = parsed_url.netloc.replace('.', '_')
     path = parsed_url.path.replace('/', '_').replace('?', '_').replace('=', '_')[:50]
     
-    filename = f"raw-data/{counter:03d}_{domain}_{path}.txt"
+    filename = f"raw_data/{counter:03d}_{domain}_{path}.txt"
     
     try:
         with open(filename, 'w', encoding='utf-8') as f:
@@ -102,8 +102,8 @@ def main():
     """
     Основная функция скрипта
     """
-    shutil.rmtree('raw-data')
-    os.makedirs('raw-data', exist_ok=True)
+    shutil.rmtree('raw_data')
+    os.makedirs('raw_data', exist_ok=True)
 
     json_file = "json/pages.json"
     
@@ -148,7 +148,7 @@ def main():
     
     print(f"\nСкачивание завершено!")
     print(f"Успешно обработано: {downloaded_count} страниц")
-    print(f"Файлы сохранены в директории: raw-data/")
+    print(f"Файлы сохранены в директории: raw_data/")
 
 if __name__ == "__main__":
     main()
