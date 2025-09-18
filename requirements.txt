@@ -6,3 +6,4 @@ faiss-cpu
 sentence-transformers
 langchain_community
 unstructured
+llama-cpp-python

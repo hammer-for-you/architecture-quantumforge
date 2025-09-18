@@ -2,7 +2,7 @@ import glob
 import os
 from langchain_community.document_loaders import DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 import time
 
@@ -10,7 +10,7 @@ KNOWLEDGE_BASE_DIR = "knowledge_base"
 CHUNK_SIZE = 400
 OVERLAP = 50
 INDEX_DIR = "faiss_index"
-MODEL_NAME = "all-MiniLM-L6-v2"
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 def load_knowledge_base(base_dir):
     """
@@ -68,8 +68,8 @@ def create_index(chunks):
     start_time = time.perf_counter()
 
     print("Создание эмбеддингов")
-    embeddings = HuggingFaceBgeEmbeddings(
-        model_name = f"sentence-transformers/{MODEL_NAME}",
+    embeddings = HuggingFaceEmbeddings(
+        model_name = f"{MODEL_NAME}",
         model_kwargs = {"device": "cpu"},
         encode_kwargs = {'normalize_embeddings': True}
     )
