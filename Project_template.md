@@ -92,8 +92,6 @@
 
 - Финальная база знаний, подготовленная к созданию векторного индекса, находится в каталоге `knowledge_base`.
 
-
-
 # Задание 3
 
 - Для построения индекса использовалась модель [sentence-transformers/all-MiniLM-L6-v2 · Hugging Face](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2).
@@ -109,3 +107,98 @@
 - Примеры запросов к индексу можно посмотреть в скрипте [query_index.py](./query_index.py).
 
 - Индекс находится в каталоге `faiss_index`
+
+
+
+# Задание 4
+
+Скрипт RAG-бота - [rag_bot.py](./rag_bot.py).
+
+
+
+### Примеры диалогов
+
+```
+Query: Who is Aveline?
+
+Reasoning:
+    1. The user asked about Aveline.
+    2. From the context, Aveline is described as Herzog Steel's daughter and Cedric Shadowbane's wife.
+    3. The user might be asking about who Aveline is or what her background is.
+    4. Therefore, the answer is that Aveline is Herzog Steel's daughter and Cedric Shadowbane's wife.
+
+    Answer: Aveline is Herzog Steel's daughter and Cedric Shadowbane's wife.
+
+Sources: knowledge_base/Aveline.txt, knowledge_base/Cedric_Shadowbane.txt
+```
+
+
+
+```
+Query: List all Suneater powers
+
+Answer: Suneater displays the following powers: Levitation, Free Will, Grant Super Strength, Absorb Principle, and Godslaying.
+
+Sources: knowledge_base/Suneater.txt, knowledge_base/Cursed_Sword.txt
+```
+
+
+
+```
+Query: Why Suneater known as 'Godslayer'?
+
+Answer: Suneater is known as 'Godslayer' because it possesses the power to slay gods. This power entered the blade at the time it was forged, making it different from other Cursed Swords. However, it's important to note that even though Suneater can slay gods, it doesn't necessarily destroy them completely. Instead, it only consumes their current manifestations in that world and ensures they cannot return there.
+
+Sources: knowledge_base/Suneater.txt
+```
+
+
+
+```
+Query: Who was arch-nemesis of Cedric Shadowbane?
+
+Answer: The arch-nemesis of Cedric Shadowbane was Baron Brutus.
+
+Sources: knowledge_base/Baron_Brutus.txt, knowledge_base/Cedric_Shadowbane.txt
+
+```
+
+
+
+```
+Query: Whose incarnation is Cedric Shadowbane?
+
+Reasoning:
+    1. The user asked a question about the incarnation of Cedric Shadowbane.
+    2. Cedric Shadowbane is an incarnation of the Immortal Knight.
+    3. Therefore, answer is "Immortal Knight".
+    Answer: Cedric Shadowbane is the incarnation of the Immortal Knight.
+
+Sources: knowledge_base/Cedric_Shadowbane.txt, knowledge_base/Baron_Brutus.txt
+```
+
+
+
+### Примеры, когда бот отвечает "Я не знаю"
+
+```
+Query: Who was the father of Cedric Shadowbane?
+
+Answer: The father of Cedric Shadowbane is not mentioned in the provided context.
+
+Sources: knowledge_base/Cedric_Shadowbane.txt, knowledge_base/Baron_Brutus.txt
+```
+
+
+
+```
+Query: Who throws the Ring into Orodruin volcano?
+
+Question: Who throws the Ring into Orodruin volcano?
+    Reasoning:
+    1. The user asked about who threw a ring into the Orodruin volcano.
+    2. No information in the context specifically addresses or answers the question about who threw the ring into the Orodruin volcano.
+    3. Therefore, based on the available information and reasoning, we cannot determine an answer to the question about who threw the ring into the Orodruin volcano. Answer: I do not know.
+
+Sources: knowledge_base/Cedric_Shadowbane.txt, knowledge_base/Dark_Pearl.txt, knowledge_base/Glowing_Pendant.txt
+```
