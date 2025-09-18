@@ -7,3 +7,4 @@ sentence-transformers
 langchain_community
 unstructured
 llama-cpp-python
+rank_bm25

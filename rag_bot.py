@@ -1,5 +1,9 @@
+from re import search
+
 from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.retrievers import EnsembleRetriever
 from langchain_community.vectorstores import FAISS
+from langchain_community.retrievers import BM25Retriever
 from langchain_community.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
@@ -8,13 +12,51 @@ MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 INDEX_DIR = "faiss_index"
 MODEL_PATH = "local_model/mistral-7b-instruct-v0.2.Q6_K.gguf"
 
-embeddings = HuggingFaceEmbeddings(model_name = MODEL_NAME, encode_kwargs={"normalize_embeddings": True})
-vectorstore = FAISS.load_local(
-    folder_path = INDEX_DIR, 
-    embeddings = embeddings, 
-    allow_dangerous_deserialization = True
-)
-retriever = vectorstore.as_retriever(search_kwargs={ "k": 5 })
+def extract_documents_from_index(vectorstore):
+    docs = []
+    if hasattr(vectorstore, "docstore"):
+        docstore = vectorstore.docstore
+        if hasattr(docstore, "_dict"):
+            docs = list(docstore._dict.values())
+        elif hasattr(docstore, "dict"):
+            docs = list(docstore.dict.values())
+        else:
+            print("Неизвестная структура docstore")
+    return docs
+
+def create_retriever():
+    embeddings = HuggingFaceEmbeddings(model_name = MODEL_NAME, encode_kwargs={"normalize_embeddings": True})
+    vectorstore = FAISS.load_local(
+        folder_path = INDEX_DIR,
+        embeddings = embeddings,
+        allow_dangerous_deserialization = True
+    )
+    documents = extract_documents_from_index(vectorstore)
+
+    vector_retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    if not documents:
+        print("Используется векторный поиск (гибридный недоступен)")
+        return vector_retriever
+    else:
+        bm25_retriever = BM25Retriever.from_documents(documents)
+        bm25_retriever.k = 5
+
+        ensemble_retriever = EnsembleRetriever(
+            retrievers = [vector_retriever, bm25_retriever],
+            weights = [0.7, 0.3]
+        )
+        print("Используется гибридный поиск (BM25 + векторный)")
+        return ensemble_retriever
+
+
+#embeddings = HuggingFaceEmbeddings(model_name = MODEL_NAME, encode_kwargs={"normalize_embeddings": True})
+#vectorstore = FAISS.load_local(
+#    folder_path = INDEX_DIR,
+#    embeddings = embeddings,
+#    allow_dangerous_deserialization = True
+#)
+#retriever = vectorstore.as_retriever(search_kwargs={ "k": 5 })
+retriever = create_retriever()
 
 llm = LlamaCpp(
     model_path = MODEL_PATH,
