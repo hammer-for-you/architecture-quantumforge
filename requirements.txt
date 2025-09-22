@@ -1,0 +1,10 @@
+requests
+beautifulsoup4
+lxml
+langchain
+faiss-cpu
+sentence-transformers
+langchain_community
+unstructured
+llama-cpp-python
+rank_bm25
